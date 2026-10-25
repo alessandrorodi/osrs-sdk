@@ -18,7 +18,7 @@ export class World {
   private _clientTickCounter = 0;
   get clientTickCounter() { return this._clientTickCounter; }
   isPaused = true;
-  tickPercent: number;
+  tickPercent = 0;
   clientTickPercent = 0;
   getReadyTimer = 0;
   deltaTimeSincePause = -1;
@@ -57,10 +57,14 @@ export class World {
     }
     this.nextTickTimer = this.tickTimer + Settings.tickMs;
     ControlPanelController.controller.onWorldTick();
-    if (!this.browserLoopStarted) {
-      this.browserLoopStarted = true;
-      this.browserLoop(window.performance.now());
-    }
+    this.startDrawing();
+  }
+
+  /** Draws every frame from now on, while paused too, so a paused world still shows its last tick and its panels. */
+  startDrawing() {
+    if (this.browserLoopStarted) return;
+    this.browserLoopStarted = true;
+    this.browserLoop(window.performance.now());
   }
 
   stopTicking() {
@@ -90,6 +94,7 @@ export class World {
   browserLoop(now: number) {
     window.requestAnimationFrame(this.browserLoop.bind(this));
     if (this.isPaused) {
+      Viewport.viewport.draw(this);
       return;
     }
     const elapsed = now - this.then;

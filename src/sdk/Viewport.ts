@@ -270,7 +270,7 @@ export class Viewport {
     this.context.restore();
     this.context.save();
     this.context.textAlign = "left";
-    if (world.getReadyTimer > 0) {
+    if (world.getReadyTimer > 0 && !world.isPaused) {
       this.context.font = "72px OSRS";
       this.context.textAlign = "center";
       this.drawText(`GET READY...${world.getReadyTimer}`, width / 2, height / 2 - 50);
