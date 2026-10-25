@@ -21,7 +21,7 @@ describe("a paused world", () => {
 
   test("draws every frame before it first ticks, without ticking or counting GET READY down", () => {
     world.getReadyTimer = 6;
-    world.startDrawing();
+    world.startLoop();
     world.browserLoop(5000);
     world.browserLoop(9000);
 
@@ -42,10 +42,10 @@ describe("a paused world", () => {
     expect([whilePaused, world.globalTickCounter]).toEqual([[0, 1, 1, 1], 2]);
   });
 
-  test("starts drawing once however often it is asked", () => {
+  test("starts the frame loop once however often it is asked", () => {
     const loop = jest.spyOn(world, "browserLoop");
-    world.startDrawing();
-    world.startDrawing();
+    world.startLoop();
+    world.startLoop();
     world.startTicking();
 
     expect(loop).toHaveBeenCalledTimes(1);

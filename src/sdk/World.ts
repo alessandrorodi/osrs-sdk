@@ -57,11 +57,10 @@ export class World {
     }
     this.nextTickTimer = this.tickTimer + Settings.tickMs;
     ControlPanelController.controller.onWorldTick();
-    this.startDrawing();
+    this.startLoop();
   }
 
-  /** Draws every frame from now on, while paused too, so a paused world still shows its last tick and its panels. */
-  startDrawing() {
+  startLoop() {
     if (this.browserLoopStarted) return;
     this.browserLoopStarted = true;
     this.browserLoop(window.performance.now());
