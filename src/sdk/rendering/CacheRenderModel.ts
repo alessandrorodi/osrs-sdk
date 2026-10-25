@@ -302,7 +302,12 @@ export class CacheRenderModel implements Model, RenderableListener {
       });
       if (payload.textureIds?.length) {
         geometry.clearGroups();
-        for (let vertex = 0; vertex < payload.textureIds.length; vertex += 3) geometry.addGroup(vertex, 3, textureMaterial.get(payload.textureIds[vertex]) ?? 0);
+        for (let vertex = 0; vertex < payload.textureIds.length; vertex += 3) {
+          const materialIndex = textureMaterial.get(payload.textureIds[vertex]) ?? 0;
+          const run = geometry.groups[geometry.groups.length - 1];
+          if (run?.materialIndex === materialIndex) run.count += 3;
+          else geometry.addGroup(vertex, 3, materialIndex);
+        }
       }
       const mesh = new THREE.Mesh(geometry, materials.length > 1 ? materials : materials[0]);
       const modelScale = payload.scale ?? 1;
