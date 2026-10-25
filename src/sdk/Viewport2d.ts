@@ -134,8 +134,8 @@ export class Viewport2d implements ViewportDelegate {
 
     const { viewportX, viewportY } = Viewport.viewport.getViewport(world.tickPercent);
     return {
+      kind: "copy" as const,
       canvas: region.canvas,
-      uiCanvas: null,
       flip: Settings.rotated === "south",
       offsetX: -viewportX * Settings.tileSize,
       offsetY: -viewportY * Settings.tileSize,

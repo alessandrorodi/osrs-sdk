@@ -35,15 +35,9 @@ type ViewportCoordinateClick = {
 
 type ViewportClickResult = ViewportEntitiesClick | ViewportCoordinateClick | null;
 
-type ViewportDrawResult = {
-  // game canvas
-  canvas: OffscreenCanvas;
-  // drawn on top of the game canvas. optional, not used for 2d view
-  uiCanvas: OffscreenCanvas | null;
-  flip: boolean;
-  offsetX: number;
-  offsetY: number;
-};
+type ViewportDrawResult =
+  | { kind: "copy"; canvas: OffscreenCanvas; flip: boolean; offsetX: number; offsetY: number }
+  | { kind: "layered"; uiCanvas: OffscreenCanvas };
 
 const BOSS_BAR_WIDTH = 300;
 const BOSS_BAR_HEIGHT = 50;
@@ -232,17 +226,26 @@ export class Viewport {
     this.context.fillStyle = "#3B3224";
     this.context.restore();
     this.context.save();
-    this.context.fillStyle = "black";
     const { width, height } = this.canvas;
-    this.context.fillRect(0, 0, width, height);
-    const { canvas, uiCanvas, flip, offsetX, offsetY } = this.delegate.draw(world, Trainer.player.region);
-    if (flip) {
-      this.context.rotate(Math.PI);
-      this.context.translate(-width, -height);
-    }
-    this.context.drawImage(canvas, offsetX, offsetY);
-    if (uiCanvas) {
-      this.context.drawImage(uiCanvas, offsetX, offsetY);
+    const frame = this.delegate.draw(world, Trainer.player.region);
+    switch (frame.kind) {
+      case "copy":
+        this.context.fillStyle = "black";
+        this.context.fillRect(0, 0, width, height);
+        if (frame.flip) {
+          this.context.rotate(Math.PI);
+          this.context.translate(-width, -height);
+        }
+        this.context.drawImage(frame.canvas, frame.offsetX, frame.offsetY);
+        break;
+      case "layered":
+        this.context.clearRect(0, 0, width, height);
+        this.context.drawImage(frame.uiCanvas, 0, 0);
+        break;
+      default: {
+        const unhandled: never = frame;
+        return unhandled;
+      }
     }
     this.context.restore();
     this.context.save();

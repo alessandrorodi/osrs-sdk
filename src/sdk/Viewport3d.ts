@@ -63,7 +63,7 @@ function squareRing(centre: ScreenPoint, distance: number): ScreenPoint[] {
 }
 
 export class Viewport3d implements ViewportDelegate {
-  private canvas: OffscreenCanvas;
+  private canvas: HTMLCanvasElement;
   private uiCanvas: OffscreenCanvas;
   private uiCanvasContext: OffscreenCanvasRenderingContext2D;
 
@@ -119,7 +119,12 @@ export class Viewport3d implements ViewportDelegate {
   constructor(faceCameraSouth: boolean, worldCanvas: HTMLCanvasElement) {
     this.scene = new THREE.Scene();
 
-    this.canvas = new OffscreenCanvas(this.canvasDimensions.width, this.canvasDimensions.height);
+    this.canvas = document.createElement("canvas");
+    this.canvas.width = this.canvasDimensions.width;
+    this.canvas.height = this.canvasDimensions.height;
+    this.canvas.style.cssText = worldCanvas.style.cssText;
+    this.canvas.hidden = true;
+    worldCanvas.before(this.canvas);
     this.uiCanvas = new OffscreenCanvas(this.canvasDimensions.width, this.canvasDimensions.height);
     this.uiCanvasContext = this.uiCanvas.getContext("2d") as OffscreenCanvasRenderingContext2D;
 
@@ -148,16 +153,13 @@ export class Viewport3d implements ViewportDelegate {
       antialias: true,
       //precision: "lowp", // is this making everything purple on mobile?
     });
-    const webglCanvas = this.renderer.domElement as unknown as {
-      addEventListener?: (type: string, listener: (event: Event) => void) => void;
-    };
-    webglCanvas.addEventListener?.("webglcontextlost", (event: Event) => {
+    this.canvas.addEventListener("webglcontextlost", (event: Event) => {
       event.preventDefault();
       console.error("[osrs-sdk] WebGL context lost while rendering the 3D viewport", {
         visibility: typeof document !== "undefined" ? document.visibilityState : "unknown",
       });
     });
-    webglCanvas.addEventListener?.("webglcontextrestored", () => {
+    this.canvas.addEventListener("webglcontextrestored", () => {
       console.warn("[osrs-sdk] WebGL context restored; Three.js resources may need rebuilding");
       this.nextRenderTime = 0;
     });
@@ -484,14 +486,9 @@ export class Viewport3d implements ViewportDelegate {
   draw(world: World, region: Region) {
     this.draw3dScene(world, region);
     this.draw2dScene(world, region);
+    this.canvas.hidden = false;
 
-    return {
-      canvas: this.canvas,
-      uiCanvas: this.uiCanvas,
-      flip: false,
-      offsetX: 0,
-      offsetY: 0,
-    };
+    return { kind: "layered" as const, uiCanvas: this.uiCanvas };
   }
 
   updateCamera(delta: number) {
