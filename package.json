@@ -9,7 +9,7 @@
     "clean": "rm -rf _bundles lib lib-esm",
     "build": "npm run clean && webpack --config webpack.production.js",
     "lint": "eslint . --ext .ts --fix",
-    "prettier": "npx prettier --write .",
+    "prettier": "biome format --write .",
     "start": "npx webpack serve --config webpack.dev.js",
     "watch": "npx webpack --config webpack.production.js --watch",
     "test": "npx jest"
@@ -30,6 +30,7 @@
   ],
   "homepage": "https://github.com/OldSchoolSDK/osrs-sdk#readme",
   "devDependencies": {
+    "@biomejs/biome": "^2.6.3",
     "@types/jest": "^27.5.2",
     "@types/lodash": "^4.14.171",
     "@types/three": "^0.163.0",
